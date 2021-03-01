@@ -1,0 +1,58 @@
+import torchvision.datasets as datasets
+from torchvision.transforms import transforms
+from torch.utils.data import DataLoader
+from torchvision.utils import make_grid
+
+transformations = transforms.Compose([
+    transforms.RandomResizedCrop(64),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+total_dataset = datasets.ImageFolder("../data/flowers", transform = transformations)
+dataset_loader = DataLoader(dataset = total_dataset, batch_size = 100)
+items = iter(dataset_loader)
+image, label = items.next()
+def show_transformed_image(image):
+    np_image = image.numpy()
+    plt.figure(figsize=(20,20))
+    plt.imshow(np.transpose(np_image, (1, 2, 0)))
+    from torch.utils.data import random_split
+
+train_size = int(0.8 * len(total_dataset))
+test_size = len(total_dataset) - train_size
+train_dataset, test_dataset = random_split(total_dataset, [train_size, test_size])
+
+train_dataset_loader = DataLoader(dataset = train_dataset, batch_size = 100)
+test_dataset_loader = DataLoader(dataset = test_dataset, batch_size = 100)
+from torch.utils.data import random_split
+
+train_size = int(0.8 * len(total_dataset))
+test_size = len(total_dataset) - train_size
+train_dataset, test_dataset = random_split(total_dataset, [train_size, test_size])
+
+train_dataset_loader = DataLoader(dataset = train_dataset, batch_size = 100)
+test_dataset_loader = DataLoader(dataset = test_dataset, batch_size = 100)
+def train_and_build(n_epoches):
+    for epoch in range(n_epoches):
+        cnn_model.train()
+        for i, (images, labels) in enumerate(train_dataset_loader):
+            optimizer.zero_grad()
+            outputs = cnn_model(images)
+            loss = loss_fn(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            import torch
+
+cnn_model.eval()
+test_acc_count = 0
+for k, (test_images, test_labels) in enumerate(test_dataset_loader):
+    test_outputs = cnn_model(test_images)
+    _, prediction = torch.max(test_outputs.data, 1)
+    test_acc_count += torch.sum(prediction == test_labels.data).item()
+
+test_accuracy = test_acc_count / len(test_dataset)
+test_image = Image.open("../data/flowers/dandelion/13920113_f03e867ea7_m.jpg")
+test_image_tensor = transformations(test_image).float()
+test_image_tensor = test_image_tensor.unsqueeze_(0)
+output = cnn_model(test_image_tensor)
+class_index = output.data.numpy().argmax()
